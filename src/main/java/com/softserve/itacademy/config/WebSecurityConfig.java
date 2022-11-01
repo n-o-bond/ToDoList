@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.sql.DataSource;
 
@@ -39,6 +40,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new WebAuthenticationEntryPoint();
     }
 
+    @Bean
+    public  UsernamePasswordAuthenticationFilter authenticationFilter(){
+        return new WebAuthenticationFilter();
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf()
@@ -47,12 +53,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET,"/login-form").permitAll()
                 .antMatchers("/users/create").permitAll()
                 .antMatchers("/users/**").hasAuthority("ADMIN")
-                .antMatchers("/todos/**", "/home").hasAnyAuthority("ADMIN", "USER")
+                .antMatchers("/todos/**", "/").hasAnyAuthority("ADMIN", "USER")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
                 .loginPage("/login-form")
-                .defaultSuccessUrl("/home")
+                .defaultSuccessUrl("/")
                 .failureUrl("/login-form?error=true")
                 .permitAll()
                 .and()
@@ -60,6 +66,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("/login-form")
                 .deleteCookies("JSESSIONID")
                 .permitAll();
+
+        http.addFilterAt(authenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         http.exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
