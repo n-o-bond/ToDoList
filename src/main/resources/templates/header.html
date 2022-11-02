@@ -5,5 +5,10 @@
                 <a class="navbar-brand" th:href="@{/}">TODOs List</a>
             </div>
         </div>
+        <div style="position: absolute; top: 7px; right: 18px;">
+            <form th:action="@{/logout}">
+                <input class="btn btn-info" type="submit" value="LogOut"/>
+            </form>
+        </div>
     </nav>
 </div>
