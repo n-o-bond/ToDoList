@@ -23,6 +23,7 @@ public class WebAuthenticationManager implements AuthenticationManager {
         for (AuthenticationProvider authenticationProvider : authenticationProviders) {
             webAuthentication = authenticationProvider.authenticate(authentication);
             if (webAuthentication != null) {
+                webAuthentication.setAuthenticated(true);
                 return webAuthentication;
             }
         }
