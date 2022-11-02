@@ -9,8 +9,8 @@
 <div class="col-md-offset-2">
     <h2>LogIn Page</h2>
 </div>
-<div th:if="${param.error}">Invalid username or password</div>
-<div th:if="${param.logout}">You have been logged out</div>
+<div class="col-md-offset-2" th:if="${param.error}">Invalid username or password</div>
+<div class="col-md-offset-2" th:if="${param.logout}">You have been logged out</div>
 <form class="form-horizontal" th:action="@{/login-form}" method="post">
     <div class="form-group">
         <label class="col-sm-2 control-label">Username:</label>

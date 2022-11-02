@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.security.core.userdetails.User.UserBuilder;
 
 import static org.springframework.security.core.userdetails.User.withUsername;
 
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found!");
         }
-        org.springframework.security.core.userdetails.User.UserBuilder userBuilder = withUsername(user.getUsername());
+        UserBuilder userBuilder = withUsername(user.getUsername());
         userBuilder.password(user.getPassword());
         userBuilder.roles(user.getRole().toString());
 
