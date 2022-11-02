@@ -19,29 +19,31 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity(debug = true)
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true,
+        securedEnabled = true,
+        jsr250Enabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private DataSource dataSource;
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public AccessDeniedHandler accessDeniedHandler(){
+    public AccessDeniedHandler accessDeniedHandler() {
         return new WebAccessDeniedHandler();
     }
 
     @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint(){
+    public AuthenticationEntryPoint authenticationEntryPoint() {
         return new WebAuthenticationEntryPoint();
     }
 
     @Bean
-    public  UsernamePasswordAuthenticationFilter authenticationFilter(){
+    public UsernamePasswordAuthenticationFilter authenticationFilter() {
         return new WebAuthenticationFilter();
     }
 
@@ -50,10 +52,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET,"/login-form").permitAll()
+                .antMatchers(HttpMethod.GET, "/login-form").permitAll()
                 .antMatchers("/users/create").permitAll()
-                .antMatchers("/users/**").hasAuthority("ADMIN")
-                .antMatchers("/todos/**", "/").hasAnyAuthority("ADMIN", "USER")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
