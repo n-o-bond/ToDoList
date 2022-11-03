@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service("userServiceImpl")
 public class UserServiceImpl implements UserService, UserDetailsService {
