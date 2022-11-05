@@ -1,35 +1,36 @@
 package com.softserve.itacademy.controller;
 
-import com.softserve.itacademy.dto.TokenResponse;
+import com.softserve.itacademy.dto.OperationResponse;
 import com.softserve.itacademy.dto.UserRequestDto;
-import com.softserve.itacademy.dto.UserResponseDto;
 import com.softserve.itacademy.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-public class LoginController {
+public class RegistrationController {
     private UserService userService;
 
-    private JwtProvider jwtProvider;
-
     @Autowired
-    public LoginController(UserService userService, JwtProvider jwtProvider) {
+    public RegistrationController(UserService userService) {
         this.userService = userService;
-        this.jwtProvider = jwtProvider;
     }
 
-    @PostMapping("/signin")
-    public TokenResponse signIn(
+    @GetMapping(value = {"/", "/index"})
+    public OperationResponse signUp() {
+        return new OperationResponse(true);
+    }
+
+    @PostMapping("/signup")
+    public OperationResponse signUp(
             @RequestParam(value = "login", required = true) String login,
             @RequestParam(value = "password", required = true) String password) {
-        log.info("**/signin userLogin = " + login);
+        log.info("**/signup userLogin = " + login);
         UserRequestDto userRequestDto = new UserRequestDto(login, password);
-        UserResponseDto userResponseDto = userService.fingByLoginAndPassword(userRequestDto);
-        return new TokenResponse(jwtProvider.generateToken(userResponseDto.getLogin()));
+        return new OperationResponse(userService.saveUser(userRequestDto));
     }
 }

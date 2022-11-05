@@ -8,4 +8,5 @@ import lombok.Data;
 public class OperationResponse {
 
     private boolean status;
+
 }
