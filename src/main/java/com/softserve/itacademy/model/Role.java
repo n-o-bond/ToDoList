@@ -1,14 +1,15 @@
 package com.softserve.itacademy.model;
 
-import org.springframework.security.core.GrantedAuthority;
+import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
+@Data
 @Entity
 @Table(name = "roles")
-public class Role implements GrantedAuthority {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -20,32 +21,12 @@ public class Role implements GrantedAuthority {
     @OneToMany(mappedBy = "role")
     private List<User> users;
 
-    public Role() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
+    public Role(long id, String name) {
+        this.id = id;
         this.name = name;
     }
 
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<User> users) {
-        this.users = users;
-    }
-
-    @Override
-    public String getAuthority() {
-        return name;
+    public Role() {
     }
 
     @Override
