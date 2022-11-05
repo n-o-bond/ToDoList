@@ -5,7 +5,7 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class OperationResponse {
+public class RoleResponse {
 
-    private boolean status;
+    private String roleName;
 }

@@ -3,15 +3,10 @@ package com.softserve.itacademy.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -54,6 +49,13 @@ public class User {
             joinColumns = @JoinColumn(name = "collaborator_id"),
             inverseJoinColumns = @JoinColumn(name = "todo_id"))
     private List<ToDo> otherTodos;
+
+    public User(long id, String login, String password, Role role) {
+        this.id = id;
+        this.login = login;
+        this.password = password;
+        this.role = role;
+    }
 
     @Override
     public String toString() {
