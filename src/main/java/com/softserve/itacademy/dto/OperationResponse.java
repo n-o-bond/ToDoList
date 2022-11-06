@@ -7,5 +7,5 @@ import lombok.Data;
 @Data
 public class OperationResponse {
 
-    private boolean status;
+    private String status;
 }

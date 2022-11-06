@@ -1,104 +1,67 @@
 package com.softserve.itacademy.controller;
 
-import com.softserve.itacademy.config.WebAuthenticationToken;
+
+import com.softserve.itacademy.config.JwtProvider;
+import com.softserve.itacademy.dto.OperationResponse;
+import com.softserve.itacademy.dto.RoleResponse;
 import com.softserve.itacademy.model.User;
-import com.softserve.itacademy.service.RoleService;
 import com.softserve.itacademy.service.UserService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
+import javassist.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
+
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import javax.persistence.EntityNotFoundException;
+import java.util.List;
+
+@Slf4j
+@RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
-    private final RoleService roleService;
-    private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
-
-    public UserController(UserService userService, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, JwtProvider jwtProvider) {
         this.userService = userService;
-        this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
+        this.jwtProvider = jwtProvider;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or isAnonymous()")
-    @GetMapping("/create")
-    public String create(Model model) {
-        model.addAttribute("user", new User());
-        return "create-user";
+    @GetMapping("/user/date")
+    public OperationResponse expirationDate() {
+        log.info("**/user/date");
+        return new OperationResponse("Expiration date is " + userService.getExpirationLocalDate());
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or isAnonymous()")
-    @PostMapping("/create")
-    public String create(@Validated @ModelAttribute("user") User user, BindingResult result) {
-        if (result.hasErrors()) {
-            return "create-user";
-        }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(roleService.readById(2));
-        User newUser = userService.create(user);
-        return "redirect:/todos/all/users/" + newUser.getId();
+    @GetMapping("/admin/roles")
+    public List<RoleResponse> listRoles() {
+        log.info("**/admin/roles");
+        return userService.getAllRoles();
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and authentication.details.id == #id")
     @GetMapping("/{id}/read")
-    public String read(@PathVariable long id, Model model) {
-        User user = userService.readById(id);
-        model.addAttribute("user", user);
-        return "user-info";
+    public User read(@PathVariable long id) throws EntityNotFoundException {
+        log.info("**/{id}/read where id = " + id);
+        return userService.readById(id);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and authentication.details.id == #id")
-    @GetMapping("/{id}/update")
-    public String update(@PathVariable long id, Model model) {
-        User user = userService.readById(id);
-        model.addAttribute("user", user);
-        model.addAttribute("roles", roleService.getAll());
-        return "update-user";
-    }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and authentication.details.id == #id")
-    @PostMapping("/{id}/update")
-    public String update(@PathVariable long id, Model model, @Validated @ModelAttribute("user") User user, @RequestParam("roleId") long roleId, BindingResult result) {
-        User oldUser = userService.readById(id);
-        if (result.hasErrors()) {
-            user.setRole(oldUser.getRole());
-            model.addAttribute("roles", roleService.getAll());
-            return "update-user";
-        }
-        if (oldUser.getRole().getName().equals("USER")) {
-            user.setRole(oldUser.getRole());
-        } else {
-            user.setRole(roleService.readById(roleId));
-        }
-        userService.update(user);
-        return "redirect:/users/" + id + "/read";
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and authentication.details.id == #id")
     @GetMapping("/{id}/delete")
-    public String delete(@PathVariable("id") long id) {
-        WebAuthenticationToken authenticationToken = (WebAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        if (((User) authenticationToken.getDetails()).getId() == id) {
-            userService.delete(id);
-            SecurityContextHolder.clearContext();
-            return "redirect:/login-form";
-        }
+    public void delete(@PathVariable("id") long id) throws EntityNotFoundException {
+        log.info("**/{id}/delete where id = " + id);
         userService.delete(id);
-        return "redirect:/users/all";
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/all")
-    public String getAll(Model model) {
-        model.addAttribute("users", userService.getAll());
-        return "users-list";
+    public List<User> getAll() {
+        log.info("**/all");
+        return userService.getAll();
+    }
+
+    @PutMapping("/{id}/update")
+    public User update(@PathVariable("id") long id, @RequestBody User user) {
+        log.info("**/{id}/update where id = " + id);
+        return userService.update(user);
     }
 }

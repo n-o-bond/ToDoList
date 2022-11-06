@@ -1,5 +1,6 @@
 package com.softserve.itacademy.service.impl;
 
+import com.softserve.itacademy.config.CustomUserDetails;
 import com.softserve.itacademy.dto.RoleResponse;
 import com.softserve.itacademy.dto.UserRequestDto;
 import com.softserve.itacademy.dto.UserResponseDto;
@@ -10,7 +11,6 @@ import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.repository.RoleRepository;
 import com.softserve.itacademy.repository.UserRepository;
 import com.softserve.itacademy.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,11 +25,11 @@ import java.util.List;
 @Service("userServiceImpl")
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
+
     public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
