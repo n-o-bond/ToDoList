@@ -6,10 +6,7 @@ import com.softserve.itacademy.dto.OperationResponse;
 import com.softserve.itacademy.dto.RoleResponse;
 import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.service.UserService;
-import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ui.Model;
-
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
