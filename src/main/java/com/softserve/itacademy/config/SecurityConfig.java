@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -17,6 +18,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     JwtFilter jwtFilter;
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler(){
+        return new WebAccessDeniedHandler();
+    }
 
     protected void configure(HttpSecurity http) throws Exception {
 
@@ -27,10 +33,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/admin/*").hasRole("ADMIN")
-                .antMatchers("/user/*").hasAnyRole("ADMIN","USER")
+                .antMatchers("/user/*").hasAnyRole("ADMIN", "USER")
                 .antMatchers("/signin", "/signup").permitAll()
                 .and()
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        http.
+                exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler());
     }
 
     @Bean

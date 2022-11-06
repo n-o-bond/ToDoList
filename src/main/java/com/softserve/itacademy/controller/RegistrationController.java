@@ -22,7 +22,7 @@ public class RegistrationController {
 
     @GetMapping(value = {"/", "/index"})
     public OperationResponse signUp() {
-        return new OperationResponse(true);
+        return new OperationResponse(String.valueOf(true));
     }
 
     @PostMapping("/signup")
@@ -31,6 +31,6 @@ public class RegistrationController {
             @RequestParam(value = "password", required = true) String password) {
         log.info("**/signup userLogin = " + login);
         UserRequestDto userRequestDto = new UserRequestDto(login, password);
-        return new OperationResponse(userService.saveUser(userRequestDto));
+        return new OperationResponse(String.valueOf(userService.saveUser(userRequestDto)));
     }
 }

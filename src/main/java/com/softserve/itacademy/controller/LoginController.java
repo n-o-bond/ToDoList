@@ -1,5 +1,6 @@
 package com.softserve.itacademy.controller;
 
+import com.softserve.itacademy.config.JwtProvider;
 import com.softserve.itacademy.dto.TokenResponse;
 import com.softserve.itacademy.dto.UserRequestDto;
 import com.softserve.itacademy.dto.UserResponseDto;
@@ -29,7 +30,7 @@ public class LoginController {
             @RequestParam(value = "password", required = true) String password) {
         log.info("**/signin userLogin = " + login);
         UserRequestDto userRequestDto = new UserRequestDto(login, password);
-        UserResponseDto userResponseDto = userService.fingByLoginAndPassword(userRequestDto);
+        UserResponseDto userResponseDto = userService.findByLoginAndPassword(userRequestDto);
         return new TokenResponse(jwtProvider.generateToken(userResponseDto.getLogin()));
     }
 }
