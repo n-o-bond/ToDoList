@@ -7,15 +7,18 @@ import com.softserve.itacademy.model.Task;
 import com.softserve.itacademy.service.StateService;
 import com.softserve.itacademy.service.TaskService;
 import com.softserve.itacademy.service.ToDoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-@Controller
-@RequestMapping("/tasks")
+import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/users/{user_id}/todos/{todo_id}/tasks")
 public class TaskController {
     private final TaskService taskService;
     private final ToDoService todoService;
@@ -26,66 +29,42 @@ public class TaskController {
         this.todoService = todoService;
         this.stateService = stateService;
     }
+    @PostMapping
+    public ResponseEntity<TaskDto> create(@PathVariable("todo_id") long todoId, @PathVariable("user_id") long userId,
+                                 @Validated @RequestBody TaskDto taskDto) {
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
-    @GetMapping("/create/todos/{todo_id}")
-    public String create(@PathVariable("todo_id") long todoId, Model model) {
-        model.addAttribute("task", new TaskDto());
-        model.addAttribute("todo", todoService.readById(todoId));
-        model.addAttribute("priorities", Priority.values());
-        return "create-task";
+        Task task = TaskTransformer.convertToEntity(taskDto, todoService.readById(todoId), stateService.readById(taskDto.getStateId()));
+        task = taskService.create(task);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(task.getId())
+                .toUri();
+        return ResponseEntity
+                .created(location)
+                .body(TaskTransformer.convertToDto(task));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
-    @PostMapping("/create/todos/{todo_id}")
-    public String create(@PathVariable("todo_id") long todoId, Model model,
-                         @Validated @ModelAttribute("task") TaskDto taskDto, BindingResult result) {
-        if (result.hasErrors()) {
-            model.addAttribute("todo", todoService.readById(todoId));
-            model.addAttribute("priorities", Priority.values());
-            return "create-task";
-        }
-        Task task = TaskTransformer.convertToEntity(
-                taskDto,
-                todoService.readById(taskDto.getTodoId()),
-                stateService.getByName("New")
-        );
-        taskService.create(task);
-        return "redirect:/todos/" + todoId + "/tasks";
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
-    @GetMapping("/{task_id}/update/todos/{todo_id}")
-    public String update(@PathVariable("task_id") long taskId, @PathVariable("todo_id") long todoId, Model model) {
-        TaskDto taskDto = TaskTransformer.convertToDto(taskService.readById(taskId));
-        model.addAttribute("task", taskDto);
-        model.addAttribute("priorities", Priority.values());
-        model.addAttribute("states", stateService.getAll());
-        return "update-task";
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
-    @PostMapping("/{task_id}/update/todos/{todo_id}")
-    public String update(@PathVariable("task_id") long taskId, @PathVariable("todo_id") long todoId, Model model,
-                         @Validated @ModelAttribute("task")TaskDto taskDto, BindingResult result) {
-        if (result.hasErrors()) {
-            model.addAttribute("priorities", Priority.values());
-            model.addAttribute("states", stateService.getAll());
-            return "update-task";
-        }
-        Task task = TaskTransformer.convertToEntity(
-                taskDto,
-                todoService.readById(taskDto.getTodoId()),
-                stateService.readById(taskDto.getStateId())
-        );
+    @PutMapping
+    public ResponseEntity<TaskDto> update(@PathVariable("todo_id") long todoId, @PathVariable("user_id") long userId,
+            @Validated @RequestBody TaskDto taskDto)  {
+        Task task = taskService.readById(taskDto.getId());
         taskService.update(task);
-        return "redirect:/todos/" + todoId + "/tasks";
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .buildAndExpand(task.getId())
+                .toUri();
+        return ResponseEntity
+                .created(location)
+                .body(TaskTransformer.convertToDto(task));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
-    @GetMapping("/{task_id}/delete/todos/{todo_id}")
-    public String delete(@PathVariable("task_id") long taskId, @PathVariable("todo_id") long todoId) {
-        taskService.delete(taskId);
-        return "redirect:/todos/" + todoId + "/tasks";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable("todo_id") long todoId, @PathVariable("user_id") long userId,
+                                    @PathVariable long id) {
+        taskService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
