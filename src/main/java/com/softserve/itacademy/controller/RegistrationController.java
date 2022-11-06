@@ -5,13 +5,11 @@ import com.softserve.itacademy.dto.UserRequestDto;
 import com.softserve.itacademy.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
+@RequestMapping("/api")
 public class RegistrationController {
     private UserService userService;
 
@@ -22,7 +20,7 @@ public class RegistrationController {
 
     @GetMapping(value = {"/", "/index"})
     public OperationResponse signUp() {
-        return new OperationResponse(true);
+        return new OperationResponse(String.valueOf(true));
     }
 
     @PostMapping("/signup")
@@ -31,6 +29,6 @@ public class RegistrationController {
             @RequestParam(value = "password", required = true) String password) {
         log.info("**/signup userLogin = " + login);
         UserRequestDto userRequestDto = new UserRequestDto(login, password);
-        return new OperationResponse(userService.saveUser(userRequestDto));
+        return new OperationResponse(String.valueOf(userService.saveUser(userRequestDto)));
     }
 }

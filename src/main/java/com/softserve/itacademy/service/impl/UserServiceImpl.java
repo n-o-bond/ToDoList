@@ -11,40 +11,28 @@ import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.repository.RoleRepository;
 import com.softserve.itacademy.repository.UserRepository;
 import com.softserve.itacademy.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service("userServiceImpl")
+@Service
+@Transactional
 public class UserServiceImpl implements UserService {
-
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-
-
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        initData();
-    }
-
-    private void initData() {
-        if ((roleRepository.count() == 0) && (userRepository.count() == 0)) {
-            roleRepository.save(new Role(1, RoleData.USER.toString()));
-            Role adminRole = roleRepository.save(new Role(2, RoleData.ADMIN.toString()));
-            User admin = new User(1, "admin", passwordEncoder.encode("admin"), adminRole);
-            userRepository.save(admin);
-        }
-    }
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public boolean saveUser(UserRequestDto userRequest) {
@@ -52,7 +40,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(roleRepository.findByName(RoleData.USER.toString()));
         user.setLogin(userRequest.getLogin());
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        return (userRepository.save(user) != null);
+        return userRepository.save(user) != null;
     }
 
     @Override

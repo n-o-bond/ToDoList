@@ -15,7 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/tasks")
+@RequestMapping("/api/tasks")
 public class TaskController {
     private final TaskService taskService;
     private final ToDoService todoService;
@@ -27,7 +27,6 @@ public class TaskController {
         this.stateService = stateService;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
     @GetMapping("/create/todos/{todo_id}")
     public String create(@PathVariable("todo_id") long todoId, Model model) {
         model.addAttribute("task", new TaskDto());
@@ -36,7 +35,6 @@ public class TaskController {
         return "create-task";
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
     @PostMapping("/create/todos/{todo_id}")
     public String create(@PathVariable("todo_id") long todoId, Model model,
                          @Validated @ModelAttribute("task") TaskDto taskDto, BindingResult result) {
@@ -54,7 +52,6 @@ public class TaskController {
         return "redirect:/todos/" + todoId + "/tasks";
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
     @GetMapping("/{task_id}/update/todos/{todo_id}")
     public String update(@PathVariable("task_id") long taskId, @PathVariable("todo_id") long todoId, Model model) {
         TaskDto taskDto = TaskTransformer.convertToDto(taskService.readById(taskId));
@@ -64,10 +61,9 @@ public class TaskController {
         return "update-task";
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
     @PostMapping("/{task_id}/update/todos/{todo_id}")
     public String update(@PathVariable("task_id") long taskId, @PathVariable("todo_id") long todoId, Model model,
-                         @Validated @ModelAttribute("task")TaskDto taskDto, BindingResult result) {
+                         @Validated @ModelAttribute("task") TaskDto taskDto, BindingResult result) {
         if (result.hasErrors()) {
             model.addAttribute("priorities", Priority.values());
             model.addAttribute("states", stateService.getAll());
@@ -82,7 +78,6 @@ public class TaskController {
         return "redirect:/todos/" + todoId + "/tasks";
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER') and @toDoController.canReadToDo(#todoId)")
     @GetMapping("/{task_id}/delete/todos/{todo_id}")
     public String delete(@PathVariable("task_id") long taskId, @PathVariable("todo_id") long todoId) {
         taskService.delete(taskId);

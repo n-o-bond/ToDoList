@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
@@ -37,28 +37,28 @@ public class UserController {
         return userService.getAllRoles();
     }
 
-    @GetMapping("/{id}/read")
+    @GetMapping("/user/{id}/read")
     public User read(@PathVariable long id) throws EntityNotFoundException {
-        log.info("**/{id}/read where id = " + id);
+        log.info("**/user/{id}/read where id = " + id);
         return userService.readById(id);
     }
 
 
-    @GetMapping("/{id}/delete")
+    @GetMapping("/user/{id}/delete")
     public void delete(@PathVariable("id") long id) throws EntityNotFoundException {
-        log.info("**/{id}/delete where id = " + id);
+        log.info("**/user/{id}/delete where id = " + id);
         userService.delete(id);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/admin/all")
     public List<User> getAll() {
-        log.info("**/all");
+        log.info("**/admin/all");
         return userService.getAll();
     }
 
-    @PutMapping("/{id}/update")
+    @PutMapping("/user/{id}/update")
     public User update(@PathVariable("id") long id, @RequestBody User user) {
-        log.info("**/{id}/update where id = " + id);
+        log.info("**/user/{id}/update where id = " + id);
         return userService.update(user);
     }
 }

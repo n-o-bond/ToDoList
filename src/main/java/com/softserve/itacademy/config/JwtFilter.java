@@ -20,15 +20,10 @@ public class JwtFilter extends GenericFilterBean {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-
-    private JwtProvider jwtProvider;
-    private CustomUserDetailsService customUserDetailsService;
-
     @Autowired
-    public JwtFilter(JwtProvider jwtProvider, CustomUserDetailsService customUserDetailsService) {
-        this.jwtProvider = jwtProvider;
-        this.customUserDetailsService = customUserDetailsService;
-    }
+    private JwtProvider jwtProvider;
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearer = request.getHeader(AUTHORIZATION_HEADER);
