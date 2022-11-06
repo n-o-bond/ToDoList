@@ -1,21 +1,18 @@
 package com.softserve.itacademy.controller;
 
+import com.softserve.itacademy.dto.ApiError;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.security.Principal;
+import java.time.LocalDateTime;
 
 @Controller
 public class ExceptionController {
-
-    @GetMapping("/accessDenied")
-    public ModelAndView accessDenied(Principal user) {
-        ModelAndView model = new ModelAndView();
-        if (user != null) {
-            model.addObject("error", "Sorry, you do not have permission to view this page!");
-        }
-        model.setViewName("accessDenied");
-        return model;
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handler(MethodArgumentNotValidException exception) {
+        return new ResponseEntity<>(new ApiError(LocalDateTime.now(), exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }
