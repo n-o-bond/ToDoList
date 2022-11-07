@@ -1,8 +1,10 @@
 package com.softserve.itacademy.config;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
@@ -13,17 +15,16 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Collections;
 
-@Component
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class JwtFilter extends GenericFilterBean {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    @Autowired
-    private JwtProvider jwtProvider;
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    private final JwtProvider jwtProvider;
 
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearer = request.getHeader(AUTHORIZATION_HEADER);
@@ -36,16 +37,19 @@ public class JwtFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
-        log.info("**doFilter Start");
+
         String token = getTokenFromRequest((HttpServletRequest) servletRequest);
-        if ((token != null) && jwtProvider.validateToken(token)) {
-            String login = jwtProvider.getLoginFromToken(token);
-            CustomUserDetails customUserDetails = customUserDetailsService.loadUserByUsername(login);
-            customUserDetails.setExpirationDate(jwtProvider.getExpirationDateFromToken(token));
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        if (token != null && !token.isBlank() && jwtProvider.validateToken(token)) {
+
+            long userId = jwtProvider.getIdFormToken(token);
+            SimpleGrantedAuthority userRole = jwtProvider.getRoleFromToken(token);
+
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(userRole));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
         }
         filterChain.doFilter(servletRequest, servletResponse);
-        log.info("**doFilter End");
     }
 }

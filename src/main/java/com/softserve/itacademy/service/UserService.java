@@ -1,18 +1,17 @@
 package com.softserve.itacademy.service;
 
 import com.softserve.itacademy.dto.RoleResponse;
-import com.softserve.itacademy.dto.UserRequestDto;
-import com.softserve.itacademy.dto.UserResponseDto;
+import com.softserve.itacademy.dto.user.UserDto;
 import com.softserve.itacademy.model.User;
 
 import java.util.List;
 
 public interface UserService {
-    boolean saveUser(UserRequestDto userRequestDto);
+     User saveUser(User user);
 
     User findByLogin(String login);
 
-    UserResponseDto findByLoginAndPassword(UserRequestDto userRequestDto);
+    UserDto findByLoginAndPassword(UserDto userDto);
 
     String getExpirationLocalDate();
 

@@ -3,17 +3,18 @@ package com.softserve.itacademy.config;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import io.jsonwebtoken.Jwts;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import io.jsonwebtoken.Jwts;
-import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class JwtProvider {
-    @Value("$(jwt.secret)")
+    @Value("${jwt-secret}")
     private String jwtSecret;
 
     public String generateToken(String login)
@@ -46,5 +47,13 @@ public class JwtProvider {
 
     public Date getExpirationDateFromToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getExpiration();
+    }
+    public Long getIdFormToken(String token) {
+        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().get("user_id", Long.class);
+    }
+
+    public SimpleGrantedAuthority getRoleFromToken(String token) {
+        String role = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().get("role", String.class);
+        return new SimpleGrantedAuthority(role);
     }
 }

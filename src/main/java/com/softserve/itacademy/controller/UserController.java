@@ -1,15 +1,19 @@
 package com.softserve.itacademy.controller;
 
-
-import com.softserve.itacademy.config.JwtProvider;
-import com.softserve.itacademy.dto.OperationResponse;
-import com.softserve.itacademy.dto.RoleResponse;
+import com.softserve.itacademy.dto.*;
+import com.softserve.itacademy.dto.user.UserDto;
+import com.softserve.itacademy.dto.user.UserTransformer;
 import com.softserve.itacademy.model.User;
+import com.softserve.itacademy.service.RoleService;
 import com.softserve.itacademy.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.persistence.EntityNotFoundException;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -18,11 +22,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final JwtProvider jwtProvider;
+    private final RoleService roleService;
 
-    public UserController(UserService userService, JwtProvider jwtProvider) {
+    public UserController(UserService userService, RoleService roleService) {
         this.userService = userService;
-        this.jwtProvider = jwtProvider;
+        this.roleService = roleService;
     }
 
     @GetMapping("/user/date")
@@ -37,28 +41,50 @@ public class UserController {
         return userService.getAllRoles();
     }
 
-    @GetMapping("/user/{id}/read")
-    public User read(@PathVariable long id) throws EntityNotFoundException {
-        log.info("**/user/{id}/read where id = " + id);
-        return userService.readById(id);
+    @GetMapping
+    public List<UserDto> getAll() {
+        log.info("**/admin/all");
+        List<UserDto> users= new ArrayList<>();
+        for(User user:userService.getAll())
+            users.add(UserTransformer.convertToDto(user));
+        return users;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDto> read(@PathVariable long id) throws EntityNotFoundException {
+        log.info("**/user/{id}/read where id = " + id);
+        return ResponseEntity.ok(UserTransformer.convertToDto(userService.readById(id)));
+    }
 
-    @GetMapping("/user/{id}/delete")
+    @PostMapping
+    public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
+        User user = UserTransformer.convertToEntity(userDto);
+        user = userService.saveUser(user);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
+        return ResponseEntity
+                .created(location)
+                .body(UserTransformer.convertToDto(user));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable("id") long id, @RequestBody UserDto userDto) {
+        log.info("**/user/{id}/update where id = " + id);
+        User user = UserTransformer.convertToEntity(userDto);
+        user.setId(id);
+        user.setRole(roleService.readById(2));
+        userService.update(user);
+
+        return ResponseEntity.ok(UserTransformer.convertToDto(user));
+    }
+
+    @DeleteMapping("/{id}")
     public void delete(@PathVariable("id") long id) throws EntityNotFoundException {
         log.info("**/user/{id}/delete where id = " + id);
         userService.delete(id);
-    }
-
-    @GetMapping("/admin/all")
-    public List<User> getAll() {
-        log.info("**/admin/all");
-        return userService.getAll();
-    }
-
-    @PutMapping("/user/{id}/update")
-    public User update(@PathVariable("id") long id, @RequestBody User user) {
-        log.info("**/user/{id}/update where id = " + id);
-        return userService.update(user);
     }
 }

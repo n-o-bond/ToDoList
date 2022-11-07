@@ -2,19 +2,20 @@ package com.softserve.itacademy.service.impl;
 
 import com.softserve.itacademy.config.CustomUserDetails;
 import com.softserve.itacademy.dto.RoleResponse;
-import com.softserve.itacademy.dto.UserRequestDto;
-import com.softserve.itacademy.dto.UserResponseDto;
+import com.softserve.itacademy.dto.user.UserDto;
 import com.softserve.itacademy.exception.NullEntityReferenceException;
 import com.softserve.itacademy.model.Role;
-import com.softserve.itacademy.model.RoleData;
 import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.repository.RoleRepository;
 import com.softserve.itacademy.repository.UserRepository;
+import com.softserve.itacademy.service.RoleService;
 import com.softserve.itacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
@@ -33,14 +34,20 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleService roleService;
 
     @Override
-    public boolean saveUser(UserRequestDto userRequest) {
-        User user = new User();
-        user.setRole(roleRepository.findByName(RoleData.USER.toString()));
-        user.setLogin(userRequest.getLogin());
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        return userRepository.save(user) != null;
+    public User saveUser(User user) {
+        if (user == null) {
+            throw new NullEntityReferenceException("User cannot be 'null'");
+        }
+        if (userRepository.findByLogin(user.getLogin()) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is occupied");
+        }
+        user.setRole(roleService.readById(2));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
 
     @Override
@@ -49,14 +56,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto findByLoginAndPassword(UserRequestDto userRequestDto) {
-        UserResponseDto result = null;
-        User user = userRepository.findByLogin(userRequestDto.getLogin());
+    public UserDto findByLoginAndPassword(UserDto userDto) {
+        UserDto result = null;
+        User user = userRepository.findByLogin(userDto.getLogin());
         if ((user != null)
-                && (passwordEncoder.matches(userRequestDto.getPassword(), user.getPassword()))) {
-            result = new UserResponseDto();
-            result.setLogin(userRequestDto.getLogin());
-            result.setRoleName(user.getRole().getName());
+                && (passwordEncoder.matches(userDto.getPassword(), user.getPassword()))) {
+            result = new UserDto();
+            result.setLogin(userDto.getLogin());
+            result.setRole(user.getRole().getName());
         }
         return result;
     }
