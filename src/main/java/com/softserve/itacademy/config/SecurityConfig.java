@@ -36,18 +36,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .exceptionHandling()
-                .accessDeniedHandler(accessDeniedHandler())
-                .and()
                 .authorizeRequests()
-                .antMatchers("/api/users/**").authenticated()
-                .antMatchers("/api/users/{owner_id}/todos/**").authenticated()
-                .antMatchers("/api/users/{user_id}/todos/{todo_id}/tasks/**").authenticated()
-                .antMatchers("/api/signin", "/api/signup").permitAll()
+                .antMatchers("/admin/*").hasRole("ADMIN")
+                .antMatchers("/user/*").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/signin", "/signup").permitAll()
                 .and()
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic();
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
+        http.
+                exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler());
     }
 
     @Bean

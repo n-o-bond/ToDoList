@@ -21,7 +21,7 @@ public class HomeController {
     public HomeController(UserService userService, UserTransformer userTransformer) {
         this.userService = userService;
     }
-    @GetMapping({"/", "/home"})
+    @GetMapping({"/", "home"})
     public List<UserDto> getAll() {
         List<UserDto> users= new ArrayList<>();
         for(User user:userService.getAll())
