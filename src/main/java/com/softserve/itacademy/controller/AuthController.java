@@ -10,15 +10,12 @@ import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
-import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,18 +24,20 @@ import java.net.URI;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    @Autowired
     private final UserService userService;
 
 
     @PostMapping(value={"/", "/signin"})
     public AuthResponseDto signIn(@RequestBody @Valid AuthRequestDto authRequest) {
+        User user = userService.findByLogin(authRequest.getLogin());
         UsernamePasswordAuthenticationToken authenticationToken
                 = new UsernamePasswordAuthenticationToken(
                 authRequest.getLogin(),
                 authRequest.getPassword()
         );
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-        return new AuthResponseDto(jwtProvider.generateToken(authentication.getPrincipal().toString()));
+        authenticationManager.authenticate(authenticationToken);
+        return new AuthResponseDto(jwtProvider.generateToken(user));
     }
 
     @PostMapping("/signup")

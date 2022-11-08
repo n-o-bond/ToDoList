@@ -10,6 +10,8 @@ import com.softserve.itacademy.service.ToDoService;
 import com.softserve.itacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
@@ -37,25 +39,42 @@ public class ToDoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN') or #ownerId == principal")
     public List<ToDoDto> getAll(@PathVariable("owner_id") long ownerId) {
         log.info("**/all/users/{user_id} + where user_id = " + ownerId);
         List<ToDoDto> toDoDtos = new ArrayList<>();
 
-        for (ToDo toDo : userService.readById(ownerId).getMyTodos())
+        for (ToDo toDo : todoService.getByUserId(ownerId)) {
             toDoDtos.add(ToDoTransformer.convertToDto(toDo));
+        }
 
         return toDoDtos;
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#id) >= 1")
     public ResponseEntity<ToDoDto> read(@PathVariable long id) {
         log.info("**/user/{id}/read where id = " + id);
         return ResponseEntity.ok(ToDoTransformer.convertToDto(todoService.readById(id)));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#id) == 1")
+    public ResponseEntity<ToDoDto> update(@PathVariable long id, @PathVariable("owner_id") long userId,
+                                                  @RequestBody ToDoDto toDoDto) {
+        log.info("**/{todo_id}/update/users/{owner_id} where todo_id = " + id);
+
+        ToDo toDo = todoService.readById(id);
+        toDo.setTitle(toDoDto.getTitle());
+        todoService.update(toDo);
+
+        return ResponseEntity.ok(ToDoTransformer.convertToDto(toDo));
+    }
+
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN') or #ownerId == principal")
     public ResponseEntity<ToDoDto> create(@PathVariable("owner_id") long ownerId,
-                                                  @Validated @RequestBody ToDoDto toDoDto) {
+                                          @Validated @RequestBody ToDoDto toDoDto) {
         log.info("**/create/users/{owner_id} where owner_id = " + ownerId);
         toDoDto.setCreatedAt(LocalDateTime.now());
         ToDo toDo = ToDoTransformer.convertToEntity(toDoDto, userService.readById(ownerId));
@@ -71,25 +90,15 @@ public class ToDoController {
                 .body(ToDoTransformer.convertToDto(toDo));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ToDoDto> update(@PathVariable long id, @PathVariable("owner_id") long userId,
-                                                  @RequestBody ToDoDto toDoDto) {
-        log.info("**/{todo_id}/update/users/{owner_id} where todo_id = " + id);
-
-        ToDo toDo = todoService.readById(id);
-        toDo.setTitle(toDoDto.getTitle());
-        todoService.update(toDo);
-
-        return ResponseEntity.ok(ToDoTransformer.convertToDto(toDo));
-    }
-
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or  @toDoController.isOwnerOrCollaborator(#id) == 1")
     public void delete(@PathVariable long id, @PathVariable("owner_id") long ownerId) {
         log.info("**/{todo_id}/delete/users/{owner_id} where todo_id = " + id);
         todoService.delete(id);
     }
 
     @GetMapping("/{todo_id}/collaborators")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) >= 1")
     public ResponseEntity<?> getAllCollaborators(@PathVariable("todo_id") long todoId,
                                                  @PathVariable("owner_id") long ownerId) {
         ToDo todo = todoService.readById(todoId);
@@ -101,6 +110,7 @@ public class ToDoController {
     }
 
     @PostMapping("/{todo_id}/collaborators/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or  @toDoController.isOwnerOrCollaborator(#toDoId) == 1")
     public ResponseEntity<?> addCollaborator(@PathVariable("owner_id") long ownerId,
                                              @PathVariable("todo_id") long toDoId,
                                              @PathVariable long id) {
@@ -117,6 +127,7 @@ public class ToDoController {
     }
 
     @DeleteMapping("/{todo_id}/collaborators/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or  @toDoController.isOwnerOrCollaborator(#toDoId) == 1")
     public ResponseEntity<?> removeCollaborator(@PathVariable("todo_id") long toDoId,
                                                 @PathVariable("owner_id") long ownerId,
                                                 @PathVariable long id) {
@@ -131,4 +142,22 @@ public class ToDoController {
                         .collect(Collectors.toList()));
 
     }
+
+
+    public int isOwnerOrCollaborator(long todoId){
+
+        long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ToDo toDo = todoService.readById(todoId);
+        if(toDo.getOwner().getId() == currentUserId) {
+            return 1;
+        }
+        for(User user: toDo.getCollaborators()){
+            if(user.getId() == currentUserId){
+                return 2;
+            }
+        }
+
+        return 0;
+    }
+
 }

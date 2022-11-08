@@ -1,5 +1,6 @@
 package com.softserve.itacademy.config;
 
+import com.softserve.itacademy.model.User;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +18,14 @@ public class JwtProvider {
     @Value("${jwt-secret}")
     private String jwtSecret;
 
-    public String generateToken(String login)
+    public String generateToken(User user)
     {
         Date date = Date.from(LocalDate.now().plusDays(15).atStartOfDay(ZoneId.systemDefault()).toInstant());
         return Jwts.builder()
-                .setSubject(login)
+                .setSubject(user.getLogin())
                 .setExpiration(date)
+                .claim("user_id", user.getId())
+                .claim("role", user.getRole().getName())
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
@@ -33,9 +36,7 @@ public class JwtProvider {
                     .setSigningKey(jwtSecret)
                     .parseClaimsJws(token);
             return true;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error("invalid token");
         }
         return false;

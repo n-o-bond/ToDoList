@@ -8,6 +8,7 @@ import com.softserve.itacademy.service.RoleService;
 import com.softserve.itacademy.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -30,17 +31,20 @@ public class UserController {
     }
 
     @GetMapping("/user/date")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public OperationResponse expirationDate() {
         log.info("**/user/date");
         return new OperationResponse("Expiration date is " + userService.getExpirationLocalDate());
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/admin/roles")
     public List<RoleResponse> listRoles() {
         log.info("**/admin/roles");
         return userService.getAllRoles();
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public List<UserDto> getAll() {
         log.info("**/admin/all");
@@ -50,12 +54,14 @@ public class UserController {
         return users;
     }
 
+    @PreAuthorize("hasAuthority('ADMIN') || principal == #id")
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> read(@PathVariable long id) throws EntityNotFoundException {
         log.info("**/user/{id}/read where id = " + id);
         return ResponseEntity.ok(UserTransformer.convertToDto(userService.readById(id)));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
         User user = UserTransformer.convertToEntity(userDto);
@@ -71,6 +77,7 @@ public class UserController {
                 .body(UserTransformer.convertToDto(user));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN') || principal == id")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") long id, @RequestBody UserDto userDto) {
         log.info("**/user/{id}/update where id = " + id);
@@ -82,6 +89,7 @@ public class UserController {
         return ResponseEntity.ok(UserTransformer.convertToDto(user));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN') || principal == id")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable("id") long id) throws EntityNotFoundException {
         log.info("**/user/{id}/delete where id = " + id);
