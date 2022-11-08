@@ -77,7 +77,7 @@ public class UserController {
                 .body(UserTransformer.convertToDto(user));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') || principal == id")
+    @PreAuthorize("hasAuthority('ADMIN') || principal == #id")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") long id, @RequestBody UserDto userDto) {
         log.info("**/user/{id}/update where id = " + id);
@@ -89,7 +89,7 @@ public class UserController {
         return ResponseEntity.ok(UserTransformer.convertToDto(user));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') || principal == id")
+    @PreAuthorize("hasAuthority('ADMIN') || principal == #id")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable("id") long id) throws EntityNotFoundException {
         log.info("**/user/{id}/delete where id = " + id);
