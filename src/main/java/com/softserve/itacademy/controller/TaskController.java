@@ -36,7 +36,7 @@ public class TaskController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) == 1")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) >= 1")
     public List<TaskDto> getAll(@PathVariable("todo_id") long todoId) {
         List<TaskDto> taskDtos = new ArrayList<>();
 
@@ -47,13 +47,13 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) == 1")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) >= 1")
     public ResponseEntity<TaskDto> read(@PathVariable("todo_id") long todoId, @PathVariable long id) {
         return ResponseEntity.ok(TaskTransformer.convertToDto(taskService.readById(id)));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) == 1")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) >= 1")
     public ResponseEntity<TaskDto> create(@PathVariable("todo_id") long todoId, @PathVariable("user_id") long userId,
                                           @Validated @RequestBody TaskDto taskDto) {
 
@@ -71,7 +71,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) == 1")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) >= 1")
     public ResponseEntity<TaskDto> update(@PathVariable long id, @PathVariable("todo_id") long todoId, @Validated @RequestBody TaskDto taskDto) {
         Task task = taskService.readById(id);
 
@@ -84,7 +84,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) == 1")
+    @PreAuthorize("hasAuthority('ADMIN') or @toDoController.isOwnerOrCollaborator(#todoId) >= 1")
     public void delete(@PathVariable("todo_id") long todoId, @PathVariable long id) {
         taskService.delete(id);
     }
