@@ -42,7 +42,6 @@ public class JwtFilter extends GenericFilterBean {
 
         if (token != null && !token.isBlank() && jwtProvider.validateToken(token)) {
 
-            System.out.println(token);
             long userId = jwtProvider.getIdFormToken(token);
             SimpleGrantedAuthority userRole = jwtProvider.getRoleFromToken(token);
 
